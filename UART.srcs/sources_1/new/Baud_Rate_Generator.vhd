@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity Baud_Rate_Generator is
-generic(
+    generic(
         Cntr: integer:=326 -- Tick rate (# clock cycles between ticks)
     );
     port(
