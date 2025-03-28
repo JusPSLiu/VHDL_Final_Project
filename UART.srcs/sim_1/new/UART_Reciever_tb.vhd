@@ -41,14 +41,13 @@ UR: UART_Reciever
         clk <= '0';
         rx <= '0';
         reset <= '1';
-        wait for 5 ns;
+        wait for 500 ns;
         reset <= '0';
-        wait for 5 ns;
-        for i in 1 to 5000 loop -- Repeat clock cycle
+        for i in 1 to 5000000 loop -- Repeat clock cycle
             clk <= '1';
-            wait for 10 ns;
+            wait for 100 ns;
             clk <= '0';
-            wait for 10 ns;
+            wait for 100 ns;
         end loop;
 
     -- Stop Simulation
