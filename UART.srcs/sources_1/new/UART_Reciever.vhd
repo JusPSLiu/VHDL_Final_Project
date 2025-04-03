@@ -101,7 +101,6 @@ begin
     
     -- output logic
     b_out <= b;
-    rx_done_tick <= '1' when rx_done_buffer='1' else
-                    '0';
+    rx_done_tick <= rx_done_buffer;
 
 end arch;

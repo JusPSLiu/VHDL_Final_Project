@@ -6,14 +6,11 @@ entity flag_buff is
     port(
         clk, reset: in std_logic;
         clr_flag, set_flag: in std_logic;
-        din: in std_logic_vector(W-1 downto 0);
-        dout: out std_logic_vector(W-1 downto 0);
         flag: out std_logic
     );
 end flag_buff;
 
 architecture arch of flag_buff is
-    signal buf_reg, buf_next: std_logic_vector(W-1 downto 0);
     signal flag_reg, flag_next: std_logic;
     
 begin
@@ -21,21 +18,17 @@ begin
     process(clk, reset)
     begin
         if (reset = '1') then
-            buf_reg <= (others =>'0');
             flag_reg <= '0';
         elsif (clk'event and clk='1') then
-            buf_reg <= buf_next;
             flag_reg <= flag_next;
         end if;
     end process;
  
 -- next-state logic
-    process (buf_reg, flag_reg, set_flag, clr_flag, din)
+    process (set_flag, clr_flag)
     begin
-        buf_next <= buf_reg;
         flag_next <= flag_reg;
-        if (set_flag = '1') then -- the byte is ready from UART receiving system
-            buf_next <= din;
+        if (set_flag = '1') then
             flag_next <= '1';
         elsif (clr_flag = '1') then
             flag_next <= '0';
@@ -43,7 +36,6 @@ begin
     end process;
     
 -- output logic
-    dout <= buf_reg;
     flag <= flag_reg;
     
 end arch;
