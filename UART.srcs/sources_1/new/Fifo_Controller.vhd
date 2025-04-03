@@ -33,33 +33,28 @@ entity Fifo_Controller is
     Port (
         clk, rst, read, write : in std_logic;
         
-        w_addr, r_addr : out std_logic_vector(integer(ceil(log2(real(WORD)))) downto 0);
+        w_addr, r_addr : out integer;
         full, empty : out std_logic
     );
 end Fifo_Controller;
 
 architecture Behavioral of Fifo_Controller is
-    -- const for ptr size and states
-    constant PTR_SIZE : integer := integer(ceil(log2(real(WORD))));
+    -- states
     type state_type is (state_full, state_empty, state_neutral);
     -- create state and signals for current pointers
     signal state, state_next : state_type;
-    signal write_ptr, read_ptr, write_ptr_next, read_ptr_next : std_logic_vector(PTR_SIZE downto 0);
-    signal empty_next, full_next : std_logic;
+    signal write_ptr, read_ptr, write_ptr_next, read_ptr_next : integer;
 begin
     -- current state logic. and output logic.
     process(clk, rst)
     begin
         if (rst='1') then
             -- state
-            state <= state_neutral;
+            state <= state_empty;
  
             -- outputs - read and write pointers
-            write_ptr <= (others => '0');
-            read_ptr <= (others => '0');
-            -- outputs - empty / full
-            empty <= empty_next;
-            full <= full_next;
+            write_ptr <= 0;
+            read_ptr <= 0;
 
         elsif (rising_edge(clk)) then
             -- state
@@ -68,14 +63,12 @@ begin
             -- outputs - read and write pointers
             write_ptr <= write_ptr_next;
             read_ptr <= read_ptr_next;
-            -- outputs - empty / full
-            empty <= empty_next;
-            full <= full_next;
         end if;
     end process;
     
     -- next state logic
-    process(read, write)
+    process(read, write, clk)
+        variable temp, temp2 : integer;
     begin
         -- default value for read_ptr_next and write_ptr_next
         read_ptr_next <= read_ptr;
@@ -86,33 +79,42 @@ begin
             -- if write and read
             if (read='1') then
                 -- update read and write ptrs
-                read_ptr_next <= std_logic_vector(to_unsigned(PTR_SIZE, to_integer(unsigned(read_ptr)) + 1));
-                write_ptr_next <= std_logic_vector(to_unsigned(PTR_SIZE, to_integer(unsigned(read_ptr)) + 1));
+                read_ptr_next <= (read_ptr_next + 1) mod 8;
+                write_ptr_next <= (write_ptr_next + 1) mod 8;
                 -- state and outputs unchanged
                 
             -- if write and not(read) and not(full)
             elsif (not(state=state_full)) then
                 -- update write ptr
-                write_ptr_next <= std_logic_vector(to_unsigned(PTR_SIZE, to_integer(unsigned(read_ptr)) + 1));
+                write_ptr_next <= (write_ptr + 1) mod 8;
                 -- CHECK IF FULL
-                if (read_ptr_next = write_ptr_next) then
-                    state <= state_full;
-                    full <= '1';
+                if (read_ptr = ((write_ptr + 1) mod 8)) then
+                    state_next <= state_full;
+                else
+                    -- if not full then neutral
+                    state_next <= state_neutral;
                 end if;
             end if;
         else
              -- if not(write) and read and not(empty)
             if (read='1' and not(state=state_empty)) then
-                full_next <= '0'; -- reading, so not full
-                read_ptr_next <= std_logic_vector(to_unsigned(PTR_SIZE, to_integer(unsigned(read_ptr)) + 1));
-                
+                -- update read ptr
+                read_ptr_next <= (read_ptr + 1) mod 8;
                 -- CHECK IF EMPTY
-                if (read_ptr_next = write_ptr_next) then
-                    empty <= '1';
+                if (write_ptr = ((read_ptr + 1) mod 8)) then
+                    state_next <= state_empty;
+                else
+                    -- if not full then neutral
+                    state_next <= state_neutral;
                 end if;
             end if;
             -- if not(write) and not(read) then nothing happens
         end if;
-
     end process;
+    
+    -- output logic
+    empty <= '1' when (state = state_empty) else '0';
+    full <= '1' when (state = state_full) else '0';
+    w_addr <= write_ptr;
+    r_addr <= read_ptr;
 end Behavioral;
