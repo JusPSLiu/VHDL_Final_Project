@@ -25,7 +25,7 @@ signal tx_done_tick : std_logic;
 signal tx: std_logic;
 begin
 
--- Instantiate Baud Rate Generator
+-- Instantiate UART Transmitter
 UT: UART_Transmitter
     port map(
         clk => clk,
@@ -42,7 +42,7 @@ UT: UART_Transmitter
 
         -- Test Case
         clk <= '0';
-        tx_start <= '1';
+        tx_start <= '0';
         d_in <= (others => '0');
         d_in(1) <= '1';
         d_in(3) <= '1';
@@ -50,7 +50,7 @@ UT: UART_Transmitter
         reset <= '1';
         wait for 500 ns;
         reset <= '0';
-        tx_start <= '0';
+        tx_start <= '1';
         for i in 1 to 5000000 loop -- Repeat clock cycle
             clk <= '1';
             wait for 100 ns;
