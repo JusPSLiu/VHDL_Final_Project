@@ -49,6 +49,36 @@ US: UART_Subsystem
     process
     begin
 
+        rx <= '0';
+        reset <= '1';
+        w1_data <= (others => '0');
+        w1_data(0) <= '1';
+        w1_data(3) <= '1';
+        w1_data(6) <= '1';
+        rd_uart <= '0';
+        wr_uart <= '0';
+        wait for 500 ns;
+        reset <= '0';
+        wait for 2000000 ns;
+        rx <= '1';
+        wait for 4000000 ns;
+        rx <= '0';
+        wait for 2000000 ns;
+        rx <= '1';
+        wr_uart <= '1';
+        wait for 3000000 ns;
+        rd_uart <= '1';
+        
+        
+
+    wait;
+    end process;
+
+    
+-- Clock Process
+    process
+    begin
+
         -- Clock Cycle
         for i in 1 to 5000000 loop -- Repeat clock cycle
             clk <= '1';
