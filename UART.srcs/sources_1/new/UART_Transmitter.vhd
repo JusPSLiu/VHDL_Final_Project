@@ -70,6 +70,7 @@ begin
                 if (s_tick='1') then
                     tx_buffer <= d_in(n);
                     if (n=(D_Bit-1)) then       -- After 16*8=128 ticks
+                        tx_done_buffer <= '1';
                         state_next <= stop;
                     else
                         n <= n+1;               -- Count to 7
@@ -78,7 +79,6 @@ begin
             when others =>
                 if (s_tick='1') then
                     state_next <= idle;
-                    tx_done_buffer <= '1';
                 end if;
         end case;
     --end if;
