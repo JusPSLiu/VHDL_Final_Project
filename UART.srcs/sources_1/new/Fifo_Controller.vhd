@@ -33,7 +33,7 @@ entity Fifo_Controller is
     Port (
         clk, rst, read, write : in std_logic;
         
-        w_addr, r_addr : out integer;
+        w_addr, r_addr : out integer range 0 to WORD-1;
         full, empty : out std_logic
     );
 end Fifo_Controller;
@@ -68,7 +68,6 @@ begin
     
     -- next state logic
     process(read, write, clk)
-        variable temp, temp2 : integer;
     begin
         -- default value for read_ptr_next and write_ptr_next
         read_ptr_next <= read_ptr;
@@ -79,16 +78,16 @@ begin
             -- if write and read
             if (read='1') then
                 -- update read and write ptrs
-                read_ptr_next <= (read_ptr_next + 1) mod 8;
-                write_ptr_next <= (write_ptr_next + 1) mod 8;
+                read_ptr_next <= (read_ptr + 1) mod WORD;
+                write_ptr_next <= (write_ptr + 1) mod WORD;
                 -- state and outputs unchanged
                 
             -- if write and not(read) and not(full)
             elsif (not(state=state_full)) then
                 -- update write ptr
-                write_ptr_next <= (write_ptr + 1) mod 8;
+                write_ptr_next <= (write_ptr + 1) mod WORD;
                 -- CHECK IF FULL
-                if (read_ptr = ((write_ptr + 1) mod 8)) then
+                if (read_ptr = (write_ptr + 1) mod WORD) then
                     state_next <= state_full;
                 else
                     -- if not full then neutral
@@ -99,9 +98,9 @@ begin
              -- if not(write) and read and not(empty)
             if (read='1' and not(state=state_empty)) then
                 -- update read ptr
-                read_ptr_next <= (read_ptr + 1) mod 8;
+                read_ptr_next <= (read_ptr + 1) mod WORD;
                 -- CHECK IF EMPTY
-                if (write_ptr = ((read_ptr + 1) mod 8)) then
+                if (write_ptr = (read_ptr + 1) mod WORD) then
                     state_next <= state_empty;
                 else
                     -- if not full then neutral

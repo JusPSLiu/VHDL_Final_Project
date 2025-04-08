@@ -24,39 +24,42 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 use IEEE.math_real.all;
 
-entity Fifo_Controller_tb is
+entity Fifo_tb is
     Generic (
         WORD : integer := 8
     );
 --  Port ( );
-end Fifo_Controller_tb;
+end Fifo_tb;
 
-architecture Behavioral of Fifo_Controller_tb is
-    component Fifo_Controller is
-        Generic (
-            WORD : integer
+architecture Behavioral of Fifo_tb is
+    -- fifo controller
+    component Fifo is
+        generic (
+            WORD : integer := 8
         );
-        Port (
-            clk, rst, read, write : in std_logic;
-            
-            w_addr, r_addr : out integer;
+        port (
+            in_data : in std_logic;
+            read, write : in std_logic;
+            reset : in std_logic;
+            clock : in std_logic;
+            out_data : out std_logic;
             full, empty : out std_logic
         );
-    end component;
-    signal clk, rst, rd, wr, full, empty : std_logic;
-    signal w_ptr, r_ptr : integer;
+     end component;
+     
+     signal clk, rst, rd, wr, full, empty, in_data, out_data : std_logic;
 begin
-    fifo : Fifo_Controller
+    fifo_to_test : Fifo
         generic map(
             WORD => WORD
         )
         port map (
-            clk => clk,
-            rst => rst,
+            in_data => in_data,
+            clock => clk,
+            reset => rst,
             read => rd,
             write => wr,
-            w_addr => w_ptr,
-            r_addr => r_ptr,
+            out_data => out_data,
             full => full,
             empty => empty
         );
@@ -74,7 +77,7 @@ begin
     process
     begin
         -- RESET
-        rst <= '0';
+        rst <= '1';
         rd <= '0';
         wr <= '0';
         wait for 10ns;
@@ -83,9 +86,10 @@ begin
 
         rst <= '0';
 
-        -- WRITE ONCE
+        -- WRITE '1'
         rd <= '0';
         wr <= '1';
+        in_data <= '1';
         wait for 10ns;
         
         -- READ AND WRITE
@@ -121,10 +125,33 @@ begin
         -- STOP
         rd <= '0';
         wr <= '0';
+        wait for 40ns;
+        
+        
+        -- WRITE 1101001
+        rd <= '0';
+        wr <= '1';
+        in_data <= '1';
+        wait for 20ns;
+        in_data <= '0';
         wait for 10ns;
+        in_data <= '1';
+        wait for 10ns;
+        in_data <= '0';
+        wait for 20ns;
+        in_data <= '1';
+        wait for 10ns;
+        wr <= '0';
+        wait for 10ns;
+        
+        -- READ 10 TIMES (only 8 registers)
+        for i in 0 to 9 loop
+            rd <= '1';
+            wr <= '0';
+            wait for 10ns;
+        end loop;
         
         -- end test
         wait;
     end process;
-
 end Behavioral;
