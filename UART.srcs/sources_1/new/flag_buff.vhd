@@ -11,7 +11,7 @@ entity flag_buff is
 end flag_buff;
 
 architecture arch of flag_buff is
-    signal flag_reg, flag_next: std_logic;
+    signal flag_reg, flag_next: std_logic := '0';
     
 begin
 
