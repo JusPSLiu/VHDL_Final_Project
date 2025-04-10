@@ -68,7 +68,9 @@ US: UART_Subsystem
         wr_uart <= '1';
         wait for 3000000 ns;
         rd_uart <= '1';
-        
+        wr_uart <= '0';
+        wait for 500000 ns;
+        rd_uart <= '0';
         
 
     wait;
