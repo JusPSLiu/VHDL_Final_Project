@@ -25,22 +25,22 @@ use IEEE. Numeric_std. all;
 
 entity Register_File is
     generic(
-        B: integer:=16; -- Number of bits
-        W: integer:=3 -- Number of address bits
+        WORD: integer:=16; -- Number of bits
+        ADDR_W: integer:=3 -- Number of address bits
     );
     port (
         clk, reset: in std_logic; -- Clock & reset input
         Wr_en: in std_logic; -- Permit write input
-        W_addr , r_addr : in std_logic_vector ((W-1) downto 0); -- Written & read input
-        W_data: in std_logic_vector ((B-1) downto 0); -- Written location
-        R_data: out std_logic_vector ((B-1) downto 0) -- Read location
-);
+        W_addr , r_addr : in std_logic_vector ((ADDR_W-1) downto 0); -- Written & read input
+        W_data: in std_logic_vector ((WORD-1) downto 0); -- Written location
+        R_data: out std_logic_vector ((WORD-1) downto 0) -- Read location
+    );
 end Register_File;
 
 architecture arch of Register_File is
 
-    type reg_file_type is array (((2**W)-1) downto 0) of std_logic_vector ((B-1) downto 0);
-    signal array_reg: reg_file_type; -- Assign array with dimensions 2^w x B
+    type reg_file_type is array (((2**ADDR_W)-1) downto 0) of std_logic_vector ((WORD-1) downto 0);
+    signal array_reg: reg_file_type; -- Assign array with dimensions 2^ADDR_W x WORD
     begin
 
     process (clk, reset)

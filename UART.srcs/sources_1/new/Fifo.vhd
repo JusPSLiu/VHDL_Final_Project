@@ -33,14 +33,15 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Fifo is
     Generic (
-        WORD : integer := 8
+        WORD : integer := 8;
+        ADDR_W : integer := 3
     );
     Port (
-        in_data : in std_logic;
+        in_data : in std_logic_vector(WORD-1 downto 0);
         read, write : in std_logic;
         reset : in std_logic;
         clock : in std_logic;
-        out_data : out std_logic;
+        out_data : out std_logic_vector(WORD-1 downto 0);
         full, empty : out std_logic
     );
 end Fifo;
@@ -48,33 +49,35 @@ end Fifo;
 architecture Behavioral of Fifo is
     component Fifo_Controller is
         Generic (
-            WORD : integer
+            ADDR_W : integer
         );
         Port (
             clk, rst, read, write : in std_logic;
             
-            w_addr, r_addr : out integer;
+            w_addr, r_addr : out std_logic_vector(ADDR_W-1 downto 0);
             full, empty : out std_logic
         );
     end component;
-    component Fifo_Register_File is
+    component Register_File is
         generic(
-            WORD : integer
+            WORD: integer:=16; -- Number of bits
+            ADDR_W: integer:=3 -- Number of address bits
         );
         port (
             clk, reset: in std_logic; -- Clock & reset input
             Wr_en: in std_logic; -- Permit write input
-            W_addr , r_addr : in integer range 0 to WORD-1; -- Written & read input
-            W_data: in std_logic; -- Write Input
-            R_data: out std_logic -- Read Output
-        );
+            W_addr , r_addr : in std_logic_vector ((ADDR_W-1) downto 0); -- Written & read input
+            W_data: in std_logic_vector ((WORD-1) downto 0); -- Written location
+            R_data: out std_logic_vector ((WORD-1) downto 0) -- Read location
+    );
     end component;
-    signal write_now, read_here, full_reg, empty_reg, write_enable, read_enable : std_logic;
-    signal w_ptr, r_ptr : integer;
+    signal read_here : std_logic_vector(WORD-1 downto 0);
+    signal full_reg, empty_reg, write_enable, read_enable : std_logic;
+    signal w_ptr, r_ptr : std_logic_vector(ADDR_W-1 downto 0);
 begin
     fifo_control : Fifo_Controller
         generic map(
-            WORD => WORD
+            ADDR_W => ADDR_W
         )
         port map (
             clk => clock,
@@ -86,22 +89,26 @@ begin
             full => full_reg,
             empty => empty_reg
         );
-    fifo_reg : Fifo_Register_File
+    fifo_reg : Register_File
         generic map(
-            WORD => WORD
+            WORD => WORD,
+            ADDR_W => ADDR_W
         )
         port map (
             clk => clock,
             reset => reset,
-            Wr_en => write_now,
-            w_addr => w_ptr,
+            Wr_en => write_enable,
+            W_addr => w_ptr,
             r_addr => r_ptr,
-            w_data => in_data,
-            r_data => read_here
+            W_data => in_data,
+            R_data => read_here
         );
-
+        
+    -- OUTPUT LOGIC
+    -- connect full and empty outputs
     full <= full_reg; empty <= empty_reg;
-
-    write_now <= write when full_reg='0' else '0';
-    out_data <= read_here when empty_reg='0' else '0';
+    -- enable writing when not full
+    write_enable <= write when full_reg='0' else '0';
+    -- enable output when not empty
+    out_data <= read_here when empty_reg='0' else (others => '0');
 end Behavioral;

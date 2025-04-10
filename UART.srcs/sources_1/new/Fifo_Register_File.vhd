@@ -32,13 +32,13 @@ entity Fifo_Register_File is
         Wr_en: in std_logic; -- Permit write input
         W_addr , r_addr : in integer range 0 to WORD-1; -- Written & read input
         W_data: in std_logic; -- Write Input
-        R_data: out std_logic -- Read Output
+        R_data: out std_logic; -- Read Output
+        array_reg_output : out std_logic_vector(WORD-1 downto 0)
     );
 end Fifo_Register_File;
 
 architecture arch of Fifo_Register_File is
-    type reg_file_type is array(WORD-1 downto 0) of std_logic;
-    signal array_reg: reg_file_type; -- Assign array with dimensions 2^w x B
+    signal array_reg: std_logic_vector(WORD-1 downto 0); -- Assign array with dimensions 2^w x B
     begin
 
     process (clk, reset)
@@ -55,4 +55,7 @@ architecture arch of Fifo_Register_File is
     --read port
     r_data <= '0' when (r_addr<0) else
         array_reg(r_addr); -- Read r_data as row r_add
+    
+    -- the full reg output
+    array_reg_output <= array_reg;
 end arch;

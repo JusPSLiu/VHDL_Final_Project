@@ -21,8 +21,9 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use IEEE.NUMERIC_STD.ALL;
 use IEEE.math_real.all;
+
 
 entity Fifo_tb is
     Generic (
@@ -35,19 +36,21 @@ architecture Behavioral of Fifo_tb is
     -- fifo controller
     component Fifo is
         generic (
-            WORD : integer := 8
+            WORD : integer := 8;
+            ADDR_W : integer := 3
         );
-        port (
-            in_data : in std_logic;
+        Port (
+            in_data : in std_logic_vector(WORD-1 downto 0);
             read, write : in std_logic;
             reset : in std_logic;
             clock : in std_logic;
-            out_data : out std_logic;
+            out_data : out std_logic_vector(WORD-1 downto 0);
             full, empty : out std_logic
         );
      end component;
      
-     signal clk, rst, rd, wr, full, empty, in_data, out_data : std_logic;
+     signal clk, rst, rd, wr, full, empty : std_logic;
+     signal in_data, out_data : std_logic_vector(WORD-1 downto 0);
 begin
     fifo_to_test : Fifo
         generic map(
@@ -89,7 +92,7 @@ begin
         -- WRITE '1'
         rd <= '0';
         wr <= '1';
-        in_data <= '1';
+        in_data <= std_logic_vector(to_unsigned(10, WORD));
         wait for 10ns;
         
         -- READ AND WRITE
@@ -128,28 +131,36 @@ begin
         wait for 40ns;
         
         
-        -- WRITE 1101001
+        -- WRITE 3, 1, 4, 1, 5, 9, 2, 6
         rd <= '0';
         wr <= '1';
-        in_data <= '1';
+        in_data <= std_logic_vector(to_unsigned(3, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(1, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(4, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(1, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(5, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(9, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(2, WORD));
+        wait for 10ns;
+        in_data <= std_logic_vector(to_unsigned(6, WORD));
         wait for 20ns;
-        in_data <= '0';
-        wait for 10ns;
-        in_data <= '1';
-        wait for 10ns;
-        in_data <= '0';
-        wait for 20ns;
-        in_data <= '1';
-        wait for 10ns;
         wr <= '0';
         wait for 10ns;
         
-        -- READ 10 TIMES (only 8 registers)
-        for i in 0 to 9 loop
+        -- READ 21 TIMES (only 8 registers)
+        for i in 0 to 20 loop
             rd <= '1';
             wr <= '0';
             wait for 10ns;
         end loop;
+        rd <= '0';
+
         
         -- end test
         wait;
