@@ -60,10 +60,12 @@ begin
                     state_next <= start;
                 else                -- Wait
                     state_next <= idle;
+                    tx_buffer <= '1';
                 end if;
             when start =>
                 if (s_tick='1') then
                     state_next <= data;
+                    tx_buffer <= '0';
                     n <= 0;
                 end if;
             when data =>

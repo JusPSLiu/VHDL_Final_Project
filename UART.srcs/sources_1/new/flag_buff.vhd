@@ -28,7 +28,7 @@ begin
     process (set_flag, clr_flag)
     begin
         flag_next <= flag_reg;
-        if (set_flag = '1' and clr_flag = '0') then
+        if (set_flag = '1') then
             flag_next <= '1';
         elsif (clr_flag = '1') then
             flag_next <= '0';
