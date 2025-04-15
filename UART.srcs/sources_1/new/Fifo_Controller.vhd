@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 03/27/2025 04:00:33 PM
--- Design Name: 
--- Module Name: Classification_Engine - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -43,7 +22,8 @@ architecture Behavioral of Fifo_Controller is
     type state_type is (state_full, state_empty, state_neutral);
     constant ADDR_SIZE : integer := (2**ADDR_W);
     -- create state and signals for current pointers
-    signal state, state_next : state_type;
+    signal state : state_type;
+    signal state_next : state_type:=state_empty;
     signal write_ptr, read_ptr, write_ptr_next, read_ptr_next : integer;
 begin
     -- current state logic. and output logic.

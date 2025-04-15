@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 04/03/2025 04:31:29 PM
--- Design Name: 
--- Module Name: Fifo - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -46,7 +25,7 @@ entity Fifo is
     );
 end Fifo;
 
-architecture Behavioral of Fifo is
+    architecture Behavioral of Fifo is
     component Fifo_Controller is
         Generic (
             ADDR_W : integer
@@ -58,6 +37,7 @@ architecture Behavioral of Fifo is
             full, empty : out std_logic
         );
     end component;
+    
     component Register_File is
         generic(
             WORD: integer:=16; -- Number of bits
@@ -71,10 +51,14 @@ architecture Behavioral of Fifo is
             R_data: out std_logic_vector ((WORD-1) downto 0) -- Read location
     );
     end component;
+    
     signal read_here : std_logic_vector(WORD-1 downto 0);
-    signal full_reg, empty_reg, write_enable, read_enable : std_logic;
+    signal full_reg, empty_reg : std_logic:='0';
+    signal write_enable, read_enable : std_logic;
     signal w_ptr, r_ptr : std_logic_vector(ADDR_W-1 downto 0);
+    
 begin
+
     fifo_control : Fifo_Controller
         generic map(
             ADDR_W => ADDR_W
@@ -89,6 +73,7 @@ begin
             full => full_reg,
             empty => empty_reg
         );
+        
     fifo_reg : Register_File
         generic map(
             WORD => WORD,

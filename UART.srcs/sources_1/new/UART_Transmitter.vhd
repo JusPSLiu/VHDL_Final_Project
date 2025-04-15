@@ -56,6 +56,7 @@ begin
     --if (s_tick='1') then
         case state_reg is
             when idle =>
+                tx_done_buffer <= '0';
                 if (tx_start='1') then    -- When input is zero
                     state_next <= start;
                 else                -- Wait
