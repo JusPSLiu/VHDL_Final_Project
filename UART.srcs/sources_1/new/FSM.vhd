@@ -50,6 +50,7 @@ architecture Behavioral of FSM is
     signal curr_state, next_state : state;
     signal start_addr, address : integer;
     signal ram_write, ram_out_enable : std_logic;
+    signal address_vector : std_logic_vector(WORD-1 downto 0);
     
     component RAM_32X8 is
         port (
@@ -62,9 +63,13 @@ architecture Behavioral of FSM is
         );
     end component;
 begin
+    -- set the logic vector form of the address
+    address_vector <= std_logic_vector(to_unsigned(address, WORD-1));
+    
+    -- set the ram
     ram : RAM_32x8
         port map(
-            address => std_logic_vector(to_unsigned(address, WORD-1)),
+            address => address_vector,
             data_in => fifo_data,
             write_in => ram_write,
             clock => clk,
