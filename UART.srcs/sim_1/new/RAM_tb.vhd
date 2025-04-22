@@ -2,14 +2,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity tb_RAM_32X8 is
+entity tb_RAM is
     -- Testbench has no external ports
-end tb_RAM_32X8;
+end tb_RAM;
 
-architecture behavior of tb_RAM_32X8 is
+architecture behavior of tb_RAM is
 
     -- Component Declaration for the Unit Under Test (UUT)
-    component RAM_32X8
+    component RAM
+        generic (
+            WORD : integer := 8; -- 8-bit data
+            ADDR_WIDTH : integer := 5 -- 5 bits for 32 addresses
+        );
         port (
             address        : in  std_logic_vector(4 downto 0);
             data_in        : in  std_logic_vector(7 downto 0);
@@ -31,7 +35,7 @@ architecture behavior of tb_RAM_32X8 is
 begin
 
     -- Instantiate the Unit Under Test (UUT)
-    uut: RAM_32X8
+    uut: RAM
         port map (
             address        => address,
             data_in        => data_in,

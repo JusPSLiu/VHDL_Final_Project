@@ -2,22 +2,25 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity RAM_32X8 is
+entity RAM is
+    Generic (
+        WORD : integer := 8; -- 8-bit data
+        ADDR_WIDTH : integer := 5 -- 5 bits for 32 addresses
+    );
     port (
-        address        : in  std_logic_vector(4 downto 0); -- 5 bits for 32 addresses
-        data_in        : in  std_logic_vector(7 downto 0); -- 8-bit data
+        address        : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+        data_in        : in  std_logic_vector(WORD-1 downto 0);
         write_in       : in  std_logic;
         clock          : in  std_logic;
         output_enable  : in  std_logic; 
-        data_out       : out std_logic_vector(7 downto 0)
+        data_out       : out std_logic_vector(WORD-1 downto 0)
     );
-end RAM_32X8;
+end RAM;
 
-architecture Behavioral of RAM_32X8 is
+architecture Behavioral of RAM is
 
     -- PARAMETERIZED WIDTH AND DEPTH
-    constant DATA_WIDTH : integer := 8;
-    constant ADDR_WIDTH : integer := 5;
+    constant DATA_WIDTH : integer := WORD;
     constant DEPTH      : integer := 2**ADDR_WIDTH;
 
     -- Define RAM type
@@ -37,7 +40,7 @@ begin
     end process;
 
     -- Read operation with output enable control
-    process(output_enable)
+    process(clock, output_enable)
     begin
         if output_enable = '1' then
             data_out <= ram_data(to_integer(unsigned(address)));

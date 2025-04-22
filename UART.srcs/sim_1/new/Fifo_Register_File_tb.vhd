@@ -27,7 +27,8 @@ use IEEE.math_real.all;
 
 entity Fifo_tb is
     Generic (
-        WORD : integer := 8
+        WORD : integer := 8;
+        ADDR_W : integer := 4
     );
 --  Port ( );
 end Fifo_tb;
@@ -36,8 +37,7 @@ architecture Behavioral of Fifo_tb is
     -- fifo controller
     component Fifo is
         generic (
-            WORD : integer := 8;
-            ADDR_W : integer := 3
+            WORD, ADDR_W : integer
         );
         Port (
             in_data : in std_logic_vector(WORD-1 downto 0);
@@ -54,7 +54,8 @@ architecture Behavioral of Fifo_tb is
 begin
     fifo_to_test : Fifo
         generic map(
-            WORD => WORD
+            WORD => WORD,
+            ADDR_W => ADDR_W
         )
         port map (
             in_data => in_data,

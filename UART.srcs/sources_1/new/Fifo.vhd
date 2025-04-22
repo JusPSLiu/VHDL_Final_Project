@@ -40,8 +40,7 @@ end Fifo;
     
     component Register_File is
         generic(
-            WORD: integer:=16; -- Number of bits
-            ADDR_W: integer:=3 -- Number of address bits
+            WORD, ADDR_W: integer
         );
         port (
             clk, reset: in std_logic; -- Clock & reset input
@@ -49,7 +48,7 @@ end Fifo;
             W_addr , r_addr : in std_logic_vector ((ADDR_W-1) downto 0); -- Written & read input
             W_data: in std_logic_vector ((WORD-1) downto 0); -- Written location
             R_data: out std_logic_vector ((WORD-1) downto 0) -- Read location
-    );
+        );
     end component;
     
     signal read_here : std_logic_vector(WORD-1 downto 0);
