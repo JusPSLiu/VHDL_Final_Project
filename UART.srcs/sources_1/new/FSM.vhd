@@ -22,7 +22,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity FSM is
+entity RamFSM is
     Generic (
         WORD : integer := 8;
         ADDR_W : integer := 3
@@ -31,14 +31,14 @@ entity FSM is
         clk, reset, fifo_empty, classify_ready : in std_logic;
         fifo_data : in std_logic_vector(WORD-1 downto 0);
         read_fifo, start_classify : out std_logic;
-        current_output : out std_logic_vector(WORD-1 downto 0);
+        current_output : out std_logic_vector(WORD-1 downto 0)
         
-        write_to_ram, read_from_ram : out std_logic; --- DEBUG OUTPUTS
-        the_address : out integer
+        --write_to_ram, read_from_ram : out std_logic; --- DEBUG OUTPUTS
+        --the_address : out integer
     );
-end FSM;
+end RamFSM;
 
-architecture Behavioral of FSM is
+architecture Behavioral of RamFSM is
     type state is (idle, loadRAM, classify);
     signal curr_state, next_state : state;
     signal start_addr, address, start_addr_next, address_next : integer;
@@ -99,7 +99,7 @@ begin
     end process;
 
     --nsl
-    process(clk, reset)
+    process(clk, reset, fifo_empty, curr_state)
     begin
         if (reset='1') then
             -- set next variables to 0
@@ -113,7 +113,7 @@ begin
             -- set next state when fifo is not empty
             if (fifo_empty='0') then
                 next_state <= loadRAM;
-            elsif (not(address = start_addr)) then
+            elsif (not(start_addr=address) and classify_ready='1') then
                 next_state <= classify;
             end if;
         elsif (curr_state = loadRAM) then
@@ -122,9 +122,10 @@ begin
                 next_state <= loadRAM;
             elsif (classify_ready='1') then
                 next_state <= classify;
+            else
+                next_state <= idle;
             end if;
         elsif (curr_state = classify) then
-            start_addr_next <= (start_addr + 1) mod (2**ADDR_W);
             next_state <= idle;
         end if;
 
@@ -139,6 +140,10 @@ begin
             address_vector_next <= std_logic_vector(to_unsigned(address, ADDR_W));
             address_next <= (address + 1) mod (2**ADDR_W);
         elsif (next_state=classify) then
+            -- limit address_next
+            address_next <= address;
+            
+            -- start to classify
             start_classify_next <= '1';
             ram_out_en_next <= '1';
 
@@ -149,13 +154,15 @@ begin
             address_vector_next <= std_logic_vector(to_unsigned(start_addr, ADDR_W));
         elsif (next_state=idle) then
             start_addr_next <= start_addr;
+            address_next <= address;
+            
             ram_out_en_next <= '0';
             start_classify_next <= '0';
         end if;
     end process;
     
     -- DEBUG OUTPUTS
-    write_to_ram <= fifo_rd_nxt;
-    read_from_ram <= ram_out_enable;
-    the_address <= to_integer(unsigned(address_vector));
+    --write_to_ram <= fifo_rd_nxt;
+    --read_from_ram <= ram_out_enable;
+    --the_address <= to_integer(unsigned(address_vector));
 end Behavioral;

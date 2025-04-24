@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 04/20/2025 11:37:02 PM
+-- Create Date: 04/24/2025 08:39:55 AM
 -- Design Name: 
--- Module Name: RamFSM_tb - Behavioral
+-- Module Name: Fifo_To_Classify_To_Fifo_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -23,22 +23,14 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
-entity RamFSM_tb is
+entity Fifo_To_Classify_To_Fifo_tb is
     Generic (
         WORD : integer := 8;
         ADDR_W : integer := 5
     );
-end RamFSM_tb;
+end Fifo_To_Classify_To_Fifo_tb;
 
-architecture Behavioral of RamFSM_tb is
+architecture Behavioral of Fifo_To_Classify_To_Fifo_tb is
     component Fifo is
         Generic (
             WORD, ADDR_W : integer
@@ -51,7 +43,7 @@ architecture Behavioral of RamFSM_tb is
         );
     end component;
 
-    component FSM is
+    component RamFSM is
         Generic (
             WORD, ADDR_W : integer
         );
@@ -59,10 +51,7 @@ architecture Behavioral of RamFSM_tb is
             clk, reset, fifo_empty, classify_ready : in std_logic;
             fifo_data : in std_logic_vector(WORD-1 downto 0);
             read_fifo, start_classify : out std_logic;
-            current_output : out std_logic_vector(WORD-1 downto 0);
-            
-            write_to_ram, read_from_ram : out std_logic; -- DEBUG OUTPUTS
-            the_address : out integer
+            current_output : out std_logic_vector(WORD-1 downto 0)
         );
     end component;
     
@@ -74,7 +63,17 @@ architecture Behavioral of RamFSM_tb is
             start, grab, clk, rst : in std_logic;
             number : in std_logic_vector(WORD-1 downto 0);
             biggest_power_of_two : out std_logic_vector(WORD-1 downto 0);
-            ready, new_data : out std_logic
+            new_data, ready : out std_logic
+        );
+    end component;
+    
+    component classification_out_fsm is
+        Generic (
+            WORD : integer
+        );
+        Port (
+            ready, is_new, fifo_is_full, rst, clk : in std_logic;
+            grab : out std_logic
         );
     end component;
     
@@ -89,12 +88,15 @@ architecture Behavioral of RamFSM_tb is
     -- classification output
     signal classification_output : std_logic_vector(WORD-1 downto 0);
     signal out_grabbing, classified_new : std_logic;
+    -- final out fifo
+    signal empty_out_fifo, last_fifo_empty, last_fifo_full : std_logic;
+    signal final_output : std_logic_vector(WORD-1 downto 0);
     
     -- DEBUG SIGNALS
-    signal ram_writing, ram_reading : std_logic;
-    signal RAM_address : integer;
+    --signal ram_writing, ram_reading : std_logic;
+    --signal RAM_address : integer;
 begin
-    my_fsm : FSM
+    my_fsm : RamFSM
         generic map (
             WORD => WORD,
             ADDR_W => ADDR_W
@@ -107,12 +109,7 @@ begin
             read_fifo => fifo_rd,
             classify_ready => classify_ready,
             start_classify => start_classify,
-            current_output => RAM_output--,
-            
-            -- DEBUG OUTPUTS
-            --write_to_ram => ram_writing,
-            --read_from_ram => ram_reading,
-            --the_address => RAM_address
+            current_output => RAM_output
         );
 
     my_fifo : FIFO
@@ -130,7 +127,7 @@ begin
             full => fifo_full,
             empty => fifo_empty
         );
-    
+
     classifier : Classification_Engine
         generic map (
             WORD => WORD
@@ -144,6 +141,35 @@ begin
             biggest_power_of_two => classification_output,
             new_data => classified_new,
             ready => classify_ready
+        );
+        
+    output_logic : classification_out_fsm
+        generic map (
+            WORD => WORD
+        )
+        port map (
+            ready => classify_ready,
+            is_new => classified_new,
+            fifo_is_full => last_fifo_full,
+            rst => rst,
+            clk => clk,
+            grab => out_grabbing
+        );
+
+    out_fifo : FIFO
+        generic map (
+            WORD => WORD,
+            ADDR_W => ADDR_W
+        )
+        port map (
+            reset => rst,
+            clock => clk,
+            in_data => classification_output,
+            read => empty_out_fifo,
+            write => out_grabbing,
+            out_data => final_output,
+            full => last_fifo_full,
+            empty => last_fifo_empty
         );
     
     -- clock
@@ -168,7 +194,6 @@ begin
         wait for 10ns;
         rst <= '1';
         
-        out_grabbing <= '1';
         wait for 15ns;
         rst <= '0';
 
@@ -181,10 +206,7 @@ begin
         new_data <= std_logic_vector(to_unsigned(5, WORD));
         wait for 10ns;
         fifo_wr <= '0';
-        wait for 500ns;
-        wait for 500ns;
-        out_grabbing <= '0';
-
+ 
         -- end test
         wait;
     end process;
