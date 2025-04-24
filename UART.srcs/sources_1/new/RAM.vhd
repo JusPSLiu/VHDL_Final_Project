@@ -42,10 +42,12 @@ begin
     -- Read operation with output enable control
     process(clock, output_enable)
     begin
-        if output_enable = '1' then
-            data_out <= ram_data(to_integer(unsigned(address)));
-        else
-            data_out <= (others => 'Z');  -- Set data_out to high impedance when not enabled
+        if rising_edge(clock) then
+            if output_enable = '1' then
+                data_out <= ram_data(to_integer(unsigned(address)));
+            else
+                data_out <= (others => 'Z');  -- Set data_out to high impedance when not enabled
+            end if;
         end if;
     end process;
 

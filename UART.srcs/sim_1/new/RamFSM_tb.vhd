@@ -107,12 +107,12 @@ begin
             read_fifo => fifo_rd,
             classify_ready => classify_ready,
             start_classify => start_classify,
-            current_output => RAM_output--,
+            current_output => RAM_output,
             
             -- DEBUG OUTPUTS
-            --write_to_ram => ram_writing,
-            --read_from_ram => ram_reading,
-            --the_address => RAM_address
+            write_to_ram => ram_writing,
+            read_from_ram => ram_reading,
+            the_address => RAM_address
         );
 
     my_fifo : FIFO

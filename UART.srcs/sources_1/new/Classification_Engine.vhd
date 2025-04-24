@@ -76,10 +76,10 @@ begin
             if (grab='1') then
                 -- to idle state
                 next_state <= idle;
-                next_ready <= '1';
                 next_next_new <= '0';
             end if;
             -- new output
+            next_ready <= '1';
             next_output <= "00000000";
             if (number(7)='1') then
                 next_output <= "10000000";

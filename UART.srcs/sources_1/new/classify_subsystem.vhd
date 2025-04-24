@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date: 04/24/2025 08:39:55 AM
+-- Create Date: 04/24/2025 03:16:59 PM
 -- Design Name: 
--- Module Name: Fifo_To_Classify_To_Fifo_tb - Behavioral
+-- Module Name: top - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -21,16 +21,22 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
 
-entity Fifo_To_Classify_To_Fifo_tb is
+
+entity classify_subsystem is
     Generic (
         WORD : integer := 8;
         ADDR_W : integer := 5
     );
-end Fifo_To_Classify_To_Fifo_tb;
+    Port (
+        clk, rst : in std_logic;
+        received_data : in std_logic_vector(WORD-1 downto 0);
+        input_full, output_empty : out std_logic;
+        data_to_transmit : out std_logic_vector(WORD-1 downto 0)
+    );
+end classify_subsystem;
 
-architecture Behavioral of Fifo_To_Classify_To_Fifo_tb is
+architecture Behavioral of classify_subsystem is
     component Fifo is
         Generic (
             WORD, ADDR_W : integer
@@ -77,10 +83,8 @@ architecture Behavioral of Fifo_To_Classify_To_Fifo_tb is
         );
     end component;
     
-    -- global signals
-    signal clk, rst : std_logic;
     -- fifo signals
-    signal fifo_rd, fifo_wr, fifo_empty, fifo_full : std_logic;
+    signal fifo_rd, fifo_wr, fifo_empty : std_logic;
     signal new_data, fifo_output : std_logic_vector(WORD-1 downto 0);
     -- RAM signals
     signal start_classify, classify_ready : std_logic;
@@ -120,7 +124,7 @@ begin
             read => fifo_rd,
             write => fifo_wr,
             out_data => fifo_output,
-            full => fifo_full,
+            full => input_full,
             empty => fifo_empty
         );
     
@@ -167,48 +171,5 @@ begin
             full => last_fifo_full,
             empty => last_fifo_empty
         );
-    
-    -- clock
-    process
-    begin
-        clk <= '1';
-        wait for 5ns;
-        clk <= '0';
-        wait for 5ns;
-    end process;
-
-    -- Testbench Process
-    process
-    begin
-        -- RESET
-        rst <= '0';
- 
-        -- RESET
-        rst <= '1';
-        fifo_wr <= '0';
-        
-        wait for 10ns;
-        rst <= '1';
-        
-        wait for 15ns;
-        rst <= '0';
-
-        -- write a few numbers
-        fifo_wr <= '1';
-        new_data <= std_logic_vector(to_unsigned(10, WORD));
-        wait for 10ns;
-        new_data <= std_logic_vector(to_unsigned(63, WORD));
-        wait for 10ns;
-        new_data <= std_logic_vector(to_unsigned(5, WORD));
-        wait for 10ns;
-        fifo_wr <= '0';
-        
-        wait for 200ns;
-        -- clear out the output fifo to see what comes out
-        empty_out_fifo <= '1';
- 
-        -- end test
-        wait;
-    end process;
 
 end Behavioral;
