@@ -3,15 +3,15 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity UART_FIFO is
     port(
-        rx: in std_logic;
-        clk, reset: in std_logic;
-        w1_data: in std_logic_vector(7 downto 0);
-        rd_uart: in std_logic;
-        wr_uart: in std_logic;
-        r0_data: out std_logic_vector(7 downto 0);
-        rx_empty: out std_logic;
-        tx_full: out std_logic;
-        tx: out std_logic
+        rx: in std_logic;                            -- initial input signal
+        clk, reset: in std_logic;                    -- clock & reset signals
+        w1_data: in std_logic_vector(7 downto 0);    -- Input to transmitter FIFO
+        rd_uart: in std_logic;                       -- Read from reciever FIFO
+        wr_uart: in std_logic;                       -- Write input to transmitter FIFO
+        r0_data: out std_logic_vector(7 downto 0);   -- Output from receiver FIFO
+        rx_empty: out std_logic;                     -- receiver FIFO is empty
+        tx_full: out std_logic;                      -- transmitter FIFO is full
+        tx: out std_logic                            -- final output signal
     );
 end UART_FIFO;
 
