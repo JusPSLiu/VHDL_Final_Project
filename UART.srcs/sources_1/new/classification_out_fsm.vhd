@@ -52,7 +52,7 @@ begin
         if (rst='1') then
             next_state <= idle;
         elsif (curr_state=idle) then
-            if (ready='1' and is_new='1' and fifo_is_full='0') then
+            if (is_new='1' and fifo_is_full='0') then
                 next_state <= transfer;
             end if;
         elsif (curr_state=transfer) then

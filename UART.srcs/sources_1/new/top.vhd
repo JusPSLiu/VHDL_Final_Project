@@ -42,9 +42,12 @@ architecture Behavioral of top is
         );
         Port (
             clk, rst : in std_logic;
-            received_data : in std_logic_vector(WORD-1 downto 0);
-            input_full, output_empty : out std_logic;
-            data_to_transmit : out std_logic_vector(WORD-1 downto 0)
+            r0_data: in std_logic_vector(7 downto 0);
+            rx_empty: in std_logic;
+            tx_full: in std_logic;
+            w1_data: out std_logic_vector(7 downto 0);
+            rd_uart: out std_logic;
+            wr_uart: out std_logic
         );
     end component;
     
@@ -62,18 +65,37 @@ architecture Behavioral of top is
         );
     end component;
     
-    -- UART subsystem
-    signal w1_data : std_logic_vector(7 downto 0);
-    signal rd_uart, wr_uart : std_logic;
-    signal r0_data: std_logic_vector(7 downto 0);
-    signal rx_empty, tx_full: std_logic;
-    
-    -- classification subsystem
-    signal received_data, data_to_transmit : std_logic_vector(WORD-1 downto 0);
-    signal input_full, output_empty : std_logic;
-    
-    -- FIX THE CODE LATER
+    -- signals btwn UART and classification
+    signal w1_data, r0_data : std_logic_vector(7 downto 0);
+    signal rd_uart, wr_uart, rx_empty, tx_full : std_logic;
 begin
-    
+    UART : UART_FIFO
+        port map(
+            clk => clk,
+            reset => reset,
+            rx => rx,
+            w1_data => w1_data,
+            rd_uart => rd_uart,
+            wr_uart => wr_uart,
+            r0_data => r0_data,
+            rx_empty => rx_empty,
+            tx_full => tx_full,
+            tx => tx
+        );
+    Classifier : classify_subsystem
+        generic map (
+            WORD => WORD,
+            ADDR_W => ADDR_W
+        )
+        port map (
+            clk => clk,
+            rst => reset,
+            r0_data => r0_data,
+            rx_empty => rx_empty,
+            tx_full => tx_full,
+            w1_data => w1_data,
+            rd_uart => rd_uart,
+            wr_uart => wr_uart
+        );
 
 end Behavioral;

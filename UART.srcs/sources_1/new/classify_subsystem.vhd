@@ -30,25 +30,16 @@ entity classify_subsystem is
     );
     Port (
         clk, rst : in std_logic;
-        received_data : in std_logic_vector(WORD-1 downto 0);
-        input_full, output_empty : out std_logic;
-        data_to_transmit : out std_logic_vector(WORD-1 downto 0)
+        r0_data: in std_logic_vector(7 downto 0);
+        rx_empty: in std_logic;
+        tx_full: in std_logic;
+        w1_data: out std_logic_vector(7 downto 0);
+        rd_uart: out std_logic;
+        wr_uart: out std_logic
     );
 end classify_subsystem;
 
 architecture Behavioral of classify_subsystem is
-    component Fifo is
-        Generic (
-            WORD, ADDR_W : integer
-        );
-        Port (
-            in_data : in std_logic_vector(WORD-1 downto 0);
-            read, write, reset, clock : in std_logic;
-            out_data : out std_logic_vector(WORD-1 downto 0);
-            full, empty : out std_logic
-        );
-    end component;
-
     component FSM is
         Generic (
             WORD, ADDR_W : integer
@@ -82,19 +73,13 @@ architecture Behavioral of classify_subsystem is
             grab : out std_logic
         );
     end component;
-    
-    -- fifo signals
-    signal fifo_rd, fifo_wr, fifo_empty : std_logic;
-    signal new_data, fifo_output : std_logic_vector(WORD-1 downto 0);
+
     -- RAM signals
     signal start_classify, classify_ready : std_logic;
     signal RAM_output : std_logic_vector(WORD-1 downto 0);
     -- classification output
     signal classification_output : std_logic_vector(WORD-1 downto 0);
-    signal out_grabbing, classified_new : std_logic;
-    -- final out fifo
-    signal empty_out_fifo, last_fifo_empty, last_fifo_full : std_logic;
-    signal final_output : std_logic_vector(WORD-1 downto 0);
+    signal sending_result, classified_new : std_logic;
 begin
     my_fsm : FSM
         generic map (
@@ -104,28 +89,12 @@ begin
         port map (
             clk => clk,
             reset => rst,
-            fifo_empty => fifo_empty,
-            fifo_data => fifo_output,
-            read_fifo => fifo_rd,
+            fifo_empty => rx_empty,
+            fifo_data => r0_data,
+            read_fifo => rd_uart,
             classify_ready => classify_ready,
             start_classify => start_classify,
             current_output => RAM_output
-        );
-
-    my_fifo : FIFO
-        generic map (
-            WORD => WORD,
-            ADDR_W => ADDR_W
-        )
-        port map (
-            reset => rst,
-            clock => clk,
-            in_data => new_data,
-            read => fifo_rd,
-            write => fifo_wr,
-            out_data => fifo_output,
-            full => input_full,
-            empty => fifo_empty
         );
     
     classifier : Classification_Engine
@@ -134,11 +103,11 @@ begin
         )
         port map (
             start => start_classify,
-            grab => out_grabbing,
+            grab => sending_result,
             clk => clk,
             rst => rst,
             number => RAM_output,
-            biggest_power_of_two => classification_output,
+            biggest_power_of_two => w1_data, -- send output to w1 FIFO
             new_data => classified_new,
             ready => classify_ready
         );
@@ -150,26 +119,11 @@ begin
         port map (
             ready => classify_ready,
             is_new => classified_new,
-            fifo_is_full => last_fifo_full,
+            fifo_is_full => tx_full,
             rst => rst,
             clk => clk,
-            grab => out_grabbing
+            grab => sending_result
         );
-
-    out_fifo : FIFO
-        generic map (
-            WORD => WORD,
-            ADDR_W => ADDR_W
-        )
-        port map (
-            reset => rst,
-            clock => clk,
-            in_data => classification_output,
-            read => empty_out_fifo,
-            write => out_grabbing,
-            out_data => final_output,
-            full => last_fifo_full,
-            empty => last_fifo_empty
-        );
-
+        
+    wr_uart <= sending_result;
 end Behavioral;

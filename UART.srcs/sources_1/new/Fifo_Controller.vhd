@@ -47,8 +47,8 @@ begin
         end if;
     end process;
     
-    -- next state logic
-    process(read, write, clk)
+    -- next state logic (with next read)
+    process(state, read, write, clk)
     begin
         -- default value for read_ptr_next and write_ptr_next
         read_ptr_next <= read_ptr;
