@@ -36,7 +36,7 @@ architecture Behavioral of Classification_Engine is
     type state is (idle, to_classify, classify);
     signal curr_state, next_state : state;
     signal input_buffer, output_buffer : std_logic_vector(WORD-1 downto 0);
-    signal ready_buffer, new_buffer : std_logic;
+    signal new_buffer : std_logic;
 begin
     --csl
     process(clk, rst)
@@ -54,19 +54,16 @@ begin
     end process;
 
     -- nsl
-    process(curr_state, start, grab, input_buffer)
+    process(curr_state, start, grab, input_buffer, rst)
     begin
         if (rst='1') then
-            ready_buffer <= '1';
             output_buffer <= (others => '0');
         elsif (curr_state=idle) then
             -- start
             if (start='1') then
                 next_state <= to_classify;
-                ready_buffer <= '0';
             end if;
         elsif (curr_state=to_classify) then
-            ready_buffer <= '0';
             next_state <= classify;
             new_buffer <= '1';
         elsif (curr_state=classify) then
@@ -77,7 +74,6 @@ begin
             end if;
 
             -- new output
-            ready_buffer <= '1';
             if (input_buffer(7)='1') then
                 output_buffer <= "10000000";
             elsif (input_buffer(6)='1') then
@@ -100,7 +96,7 @@ begin
     end process;
     
     -- Moore output logic
-    biggest_power_of_two <= input_buffer;--output_buffer;
+    biggest_power_of_two <= output_buffer;
     ready <= '1' when (next_state=idle) else '0';--ready_buffer;
     new_data <= new_buffer;
 end Behavioral;
